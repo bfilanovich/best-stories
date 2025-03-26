@@ -1,1 +1,1 @@
-﻿GET localhost:8080/v1/stories/top?count=500
+﻿GET localhost:8080/v1/stories/top?count=200

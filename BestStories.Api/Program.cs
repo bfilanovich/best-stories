@@ -1,12 +1,21 @@
+using System;
+using BestStories.Api.Application;
+using BestStories.Api.Infrastructure;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+IServiceCollection services = builder.Services;
 
-builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+services.AddControllers();
+services.AddEndpointsApiExplorer();
+services.AddSwaggerGen();
+
+services.AddHttpClient<IHackerNewsClient, HackerNewsClient>(client =>
+{
+	client.BaseAddress = new Uri("https://hacker-news.firebaseio.com/");
+});
 
 WebApplication app = builder.Build();
 if (app.Environment.IsDevelopment())

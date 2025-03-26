@@ -1,13 +1,22 @@
 ﻿using System;
+using System.Text.Json.Serialization;
+using BestStories.Api.Infrastructure;
 
-namespace BestStories.Api.ApiModels;
+namespace BestStories.Api.Application;
 
-public class TopStoryApiDto
+public class HackerNewsStoryDto
 {
 	public string Title { get; set; } = string.Empty;
+
+	[JsonPropertyName("url")]
 	public string Uri { get; set; } = string.Empty;
+
+	[JsonPropertyName("by")]
 	public string PostedBy { get; set; } = string.Empty;
+
 	public long Time { get; set; }
+
 	public int Score { get; set; }
+
 	public int CommentCount { get; set; }
 }
