@@ -1,0 +1,25 @@
+root = true
+
+[*]
+indent_style = tab
+indent_size = 4
+insert_final_newline = true
+trim_trailing_whitespace = true
+max_line_length = 120
+
+
+[*.cs]
+csharp_for_built_in_types = use_var_when_evident
+csharp_for_simple_types = use_var_when_evident
+csharp_for_other_types = use_var_when_evident
+csharp_keep_blank_lines_in_code = 1
+csharp_keep_blank_lines_in_declarations = 1
+csharp_space_within_single_line_array_initializer_braces = true
+csharp_empty_block_style = together_same_line
+
+# ReSharper properties
+resharper_place_accessorholder_attribute_on_same_line = false
+
+[*.{csproj,json,yml,yaml}]
+indent_style = space
+indent_size = 2
