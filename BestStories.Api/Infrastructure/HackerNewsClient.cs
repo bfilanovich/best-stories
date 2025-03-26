@@ -1,16 +1,16 @@
 ﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using BestStories.Api.Application;
+using Microsoft.Extensions.Options;
 
 namespace BestStories.Api.Infrastructure;
 
-public class HackerNewsClient(HttpClient client) : IHackerNewsClient
+public class HackerNewsClient(HttpClient client, IOptions<HackerNewsClientOptions> options) : IHackerNewsClient
 {
 	public async Task<long[]> GetBestStoriesAsync(CancellationToken cancellationToken = default)
 	{
@@ -37,8 +37,12 @@ public class HackerNewsClient(HttpClient client) : IHackerNewsClient
 		CancellationToken cancellationToken = default)
 	{
 		var stories = new ConcurrentBag<HackerNewsStoryDto>();
-		var options = new ParallelOptions { MaxDegreeOfParallelism = 25, CancellationToken = cancellationToken };
-		await Parallel.ForEachAsync(ids, options, async (id, ct) =>
+		var parallelOptions = new ParallelOptions
+		{
+			MaxDegreeOfParallelism = options.Value.MaxDegreeOfParallelism,
+			CancellationToken = cancellationToken
+		};
+		await Parallel.ForEachAsync(ids, parallelOptions, async (id, ct) =>
 			{
 				HackerNewsStoryDto story = await GetStoryAsync(id, ct)
 					.ConfigureAwait(false);

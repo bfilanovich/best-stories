@@ -17,5 +17,6 @@ public class HackerNewsStoryDto
 
 	public int Score { get; set; }
 
+	[JsonPropertyName("descendants")]
 	public int CommentCount { get; set; }
 }

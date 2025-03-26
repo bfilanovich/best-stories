@@ -4,6 +4,7 @@ using BestStories.Api.Infrastructure;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 IServiceCollection services = builder.Services;
@@ -12,17 +13,19 @@ services.AddControllers();
 services.AddEndpointsApiExplorer();
 services.AddSwaggerGen();
 services.AddScoped<HackerNewsStoryService>();
+services.Configure<HackerNewsClientOptions>(builder.Configuration.GetSection(HackerNewsClientOptions.Section));
 
-services.AddHttpClient<IHackerNewsClient, HackerNewsClient>(client =>
+services.AddHttpClient<IHackerNewsClient, HackerNewsClient>((sp, client) =>
 {
-	client.BaseAddress = new Uri("https://hacker-news.firebaseio.com/");
+	HackerNewsClientOptions options = sp.GetRequiredService<IOptions<HackerNewsClientOptions>>().Value;
+	client.BaseAddress = options.BaseUri ?? throw new InvalidOperationException("BaseUri isn't configured.");
 });
 
 WebApplication app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+	app.UseSwagger();
+	app.UseSwaggerUI();
 }
 
 app.MapControllers();
