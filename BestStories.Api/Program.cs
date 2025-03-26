@@ -11,6 +11,7 @@ IServiceCollection services = builder.Services;
 services.AddControllers();
 services.AddEndpointsApiExplorer();
 services.AddSwaggerGen();
+services.AddScoped<HackerNewsStoryService>();
 
 services.AddHttpClient<IHackerNewsClient, HackerNewsClient>(client =>
 {

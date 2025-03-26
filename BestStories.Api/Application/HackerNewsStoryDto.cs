@@ -1,11 +1,10 @@
-﻿using System;
-using System.Text.Json.Serialization;
-using BestStories.Api.Infrastructure;
+﻿using System.Text.Json.Serialization;
 
 namespace BestStories.Api.Application;
 
 public class HackerNewsStoryDto
 {
+	public long Id { get; set; }
 	public string Title { get; set; } = string.Empty;
 
 	[JsonPropertyName("url")]
