@@ -4,14 +4,11 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using BestStories.Api.ApiModels;
-using BestStories.Api.Infrastructure;
 using BestStories.Api.Infrastructure.Abstractions;
-using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.Options;
 
 namespace BestStories.Api.Application;
 
-public class HackerNewsStoryService(IHackerNewsClient hackerNewsClient, IOptions<CacheOptions> cacheOptions, IMemoryCache memoryCache)
+public class HackerNewsStoryService(IHackerNewsClient hackerNewsClient, ICache cache)
 {
 	public async Task<IReadOnlyCollection<TopStoryApiDto>> GetTopStoriesAsync(
 		int count,
@@ -22,7 +19,7 @@ public class HackerNewsStoryService(IHackerNewsClient hackerNewsClient, IOptions
 			throw new ArgumentException($"Count must be between 1 and 200. Count: {count}", nameof(count));
 		}
 
-		long[] bestIds = await hackerNewsClient.GetBestStoriesAsync(cancellationToken);
+		long[] bestIds = await hackerNewsClient.GetBestStoryIdsAsync(cancellationToken);
 		long[] topIds = bestIds.Take(count).ToArray();
 		IReadOnlyCollection<HackerNewsStoryDto> cached = GetCached(topIds);
 		long[] notFoundIds = topIds.Except(cached.Select(x => x.Id)).ToArray();
@@ -41,9 +38,9 @@ public class HackerNewsStoryService(IHackerNewsClient hackerNewsClient, IOptions
 		var result = new List<HackerNewsStoryDto>(ids.Length);
 		foreach (long id in ids)
 		{
-			if (memoryCache.TryGetValue(id, out HackerNewsStoryDto? cached))
+			if (cache.TryGetValue(id, out HackerNewsStoryDto? cached))
 			{
-				result.Add(cached!);
+				result.Add(cached);
 			}
 		}
 
@@ -57,9 +54,7 @@ public class HackerNewsStoryService(IHackerNewsClient hackerNewsClient, IOptions
 
 		foreach (HackerNewsStoryDto item in betsStories)
 		{
-			MemoryCacheEntryOptions cacheEntryOptions = new MemoryCacheEntryOptions()
-				.SetSlidingExpiration(cacheOptions.Value.SlidingExpiration);
-			memoryCache.Set(item.Id, item, cacheEntryOptions);
+			cache.Set(item.Id, item);
 		}
 
 		return betsStories;

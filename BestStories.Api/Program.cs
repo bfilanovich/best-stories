@@ -17,6 +17,7 @@ services.AddControllers();
 services.AddEndpointsApiExplorer();
 services.AddSwaggerGen();
 services.AddMemoryCache();
+services.AddTransient<ICache, Cache>();
 services.AddScoped<HackerNewsStoryService>();
 services.Configure<HackerNewsClientOptions>(builder.Configuration.GetSection(HackerNewsClientOptions.Section));
 services.Configure<CacheOptions>(builder.Configuration.GetSection(CacheOptions.Section));
@@ -27,7 +28,7 @@ services.AddHttpClient<IHackerNewsClient, HackerNewsClient>((sp, client) =>
 		client.BaseAddress = options.BaseUri ?? throw new InvalidOperationException("BaseUri isn't configured.");
 	})
 	.AddTransientHttpErrorPolicy(x =>
-		x.WaitAndRetryAsync(3, retryNumber => TimeSpan.FromMilliseconds(200)));
+		x.WaitAndRetryAsync(3, _ => TimeSpan.FromMilliseconds(200)));
 
 WebApplication app = builder.Build();
 if (app.Environment.IsDevelopment())

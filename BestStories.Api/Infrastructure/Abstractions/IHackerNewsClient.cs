@@ -6,7 +6,7 @@ namespace BestStories.Api.Infrastructure.Abstractions;
 
 public interface IHackerNewsClient
 {
-	Task<long[]> GetBestStoriesAsync(CancellationToken cancellationToken = default);
+	Task<long[]> GetBestStoryIdsAsync(CancellationToken cancellationToken = default);
 
 	Task<HackerNewsStoryDto> GetStoryAsync(long id, CancellationToken cancellationToken = default);
 

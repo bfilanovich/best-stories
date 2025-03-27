@@ -13,7 +13,7 @@ namespace BestStories.Api.Infrastructure;
 
 public class HackerNewsClient(HttpClient client, IOptions<HackerNewsClientOptions> options) : IHackerNewsClient
 {
-	public async Task<long[]> GetBestStoriesAsync(CancellationToken cancellationToken = default)
+	public async Task<long[]> GetBestStoryIdsAsync(CancellationToken cancellationToken = default)
 	{
 		long[]? items = await client.GetFromJsonAsync<long[]>("v0/beststories.json", cancellationToken)
 			.ConfigureAwait(false);

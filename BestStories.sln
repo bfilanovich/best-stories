@@ -5,6 +5,8 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BestStories.Api", "BestStories.Api\BestStories.Api.csproj", "{BE84A7C9-8632-4102-AD33-F18575C1277F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BestStories.Api.Tests", "BestStories.Api.Tests\BestStories.Api.Tests.csproj", "{190C5BF2-D718-4AE5-9C2E-5D22EA5AA543}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,5 +20,9 @@ Global
 		{BE84A7C9-8632-4102-AD33-F18575C1277F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BE84A7C9-8632-4102-AD33-F18575C1277F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BE84A7C9-8632-4102-AD33-F18575C1277F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{190C5BF2-D718-4AE5-9C2E-5D22EA5AA543}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{190C5BF2-D718-4AE5-9C2E-5D22EA5AA543}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{190C5BF2-D718-4AE5-9C2E-5D22EA5AA543}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{190C5BF2-D718-4AE5-9C2E-5D22EA5AA543}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
