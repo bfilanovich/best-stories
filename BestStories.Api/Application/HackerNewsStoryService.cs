@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using BestStories.Api.ApiModels;
+using BestStories.Api.Infrastructure.Abstractions;
 
 namespace BestStories.Api.Application;
 

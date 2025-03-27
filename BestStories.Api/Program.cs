@@ -1,6 +1,7 @@
 using System;
 using BestStories.Api.Application;
 using BestStories.Api.Infrastructure;
+using BestStories.Api.Infrastructure.Abstractions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;

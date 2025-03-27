@@ -1,6 +1,8 @@
-﻿using System.Text.Json.Serialization;
+﻿using System;
+using System.Text.Json.Serialization;
+using BestStories.Api.Serialization;
 
-namespace BestStories.Api.Application;
+namespace BestStories.Api.Infrastructure.Abstractions;
 
 public class HackerNewsStoryDto
 {
@@ -13,7 +15,8 @@ public class HackerNewsStoryDto
 	[JsonPropertyName("by")]
 	public string PostedBy { get; set; } = string.Empty;
 
-	public long Time { get; set; }
+	[JsonConverter(typeof(DateTimeFromUnixEpochJsonConverter))]
+	public DateTime Time { get; set; }
 
 	public int Score { get; set; }
 

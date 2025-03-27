@@ -2,7 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace BestStories.Api.Application;
+namespace BestStories.Api.Infrastructure.Abstractions;
 
 public interface IHackerNewsClient
 {
