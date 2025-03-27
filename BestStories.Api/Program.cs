@@ -13,6 +13,7 @@ IServiceCollection services = builder.Services;
 services.AddControllers();
 services.AddEndpointsApiExplorer();
 services.AddSwaggerGen();
+services.AddMemoryCache();
 services.AddScoped<HackerNewsStoryService>();
 services.Configure<HackerNewsClientOptions>(builder.Configuration.GetSection(HackerNewsClientOptions.Section));
 

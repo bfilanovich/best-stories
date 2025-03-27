@@ -37,12 +37,18 @@ public class HackerNewsClient(HttpClient client, IOptions<HackerNewsClientOption
 	public async Task<IReadOnlyCollection<HackerNewsStoryDto>> GetStoriesAsync(IReadOnlyCollection<long> ids,
 		CancellationToken cancellationToken = default)
 	{
+		if (ids.Count == 0)
+		{
+			return [];
+		}
+
 		var stories = new ConcurrentBag<HackerNewsStoryDto>();
 		var parallelOptions = new ParallelOptions
 		{
 			MaxDegreeOfParallelism = options.Value.MaxDegreeOfParallelism,
 			CancellationToken = cancellationToken
 		};
+
 		await Parallel.ForEachAsync(ids, parallelOptions, async (id, ct) =>
 			{
 				HackerNewsStoryDto story = await GetStoryAsync(id, ct)
