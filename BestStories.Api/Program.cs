@@ -5,7 +5,6 @@ using BestStories.Api.Infrastructure;
 using BestStories.Api.Infrastructure.Abstractions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Polly;
 
@@ -31,11 +30,8 @@ services.AddHttpClient<IHackerNewsClient, HackerNewsClient>((sp, client) =>
 		x.WaitAndRetryAsync(3, _ => TimeSpan.FromMilliseconds(200)));
 
 WebApplication app = builder.Build();
-if (app.Environment.IsDevelopment())
-{
-	app.UseSwagger();
-	app.UseSwaggerUI();
-}
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.MapControllers();
 
