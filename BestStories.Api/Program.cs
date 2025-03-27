@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
+using Polly;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 IServiceCollection services = builder.Services;
@@ -21,10 +22,12 @@ services.Configure<HackerNewsClientOptions>(builder.Configuration.GetSection(Hac
 services.Configure<CacheOptions>(builder.Configuration.GetSection(CacheOptions.Section));
 
 services.AddHttpClient<IHackerNewsClient, HackerNewsClient>((sp, client) =>
-{
-	HackerNewsClientOptions options = sp.GetRequiredService<IOptions<HackerNewsClientOptions>>().Value;
-	client.BaseAddress = options.BaseUri ?? throw new InvalidOperationException("BaseUri isn't configured.");
-});
+	{
+		HackerNewsClientOptions options = sp.GetRequiredService<IOptions<HackerNewsClientOptions>>().Value;
+		client.BaseAddress = options.BaseUri ?? throw new InvalidOperationException("BaseUri isn't configured.");
+	})
+	.AddTransientHttpErrorPolicy(x =>
+		x.WaitAndRetryAsync(3, retryNumber => TimeSpan.FromMilliseconds(200)));
 
 WebApplication app = builder.Build();
 if (app.Environment.IsDevelopment())
