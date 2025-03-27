@@ -1,5 +1,6 @@
 using System;
 using BestStories.Api.Application;
+using BestStories.Api.BackgroundServices;
 using BestStories.Api.Infrastructure;
 using BestStories.Api.Infrastructure.Abstractions;
 using Microsoft.AspNetCore.Builder;
@@ -10,12 +11,14 @@ using Microsoft.Extensions.Options;
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 IServiceCollection services = builder.Services;
 
+services.AddHostedService<PrefetchBestStoriesTask>();
 services.AddControllers();
 services.AddEndpointsApiExplorer();
 services.AddSwaggerGen();
 services.AddMemoryCache();
 services.AddScoped<HackerNewsStoryService>();
 services.Configure<HackerNewsClientOptions>(builder.Configuration.GetSection(HackerNewsClientOptions.Section));
+services.Configure<CacheOptions>(builder.Configuration.GetSection(CacheOptions.Section));
 
 services.AddHttpClient<IHackerNewsClient, HackerNewsClient>((sp, client) =>
 {

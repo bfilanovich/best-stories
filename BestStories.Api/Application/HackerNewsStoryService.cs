@@ -4,12 +4,14 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using BestStories.Api.ApiModels;
+using BestStories.Api.Infrastructure;
 using BestStories.Api.Infrastructure.Abstractions;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Options;
 
 namespace BestStories.Api.Application;
 
-public class HackerNewsStoryService(IHackerNewsClient hackerNewsClient, IMemoryCache memoryCache)
+public class HackerNewsStoryService(IHackerNewsClient hackerNewsClient, IOptions<CacheOptions> cacheOptions, IMemoryCache memoryCache)
 {
 	public async Task<IReadOnlyCollection<TopStoryApiDto>> GetTopStoriesAsync(
 		int count,
@@ -24,12 +26,8 @@ public class HackerNewsStoryService(IHackerNewsClient hackerNewsClient, IMemoryC
 		long[] topIds = bestIds.Take(count).ToArray();
 		IReadOnlyCollection<HackerNewsStoryDto> cached = GetCached(topIds);
 		long[] notFoundIds = topIds.Except(cached.Select(x => x.Id)).ToArray();
-		IReadOnlyCollection<HackerNewsStoryDto> newStories = [];
-		if (notFoundIds.Length != 0)
-		{
-			newStories = await RequestAndCacheAsync(notFoundIds, cancellationToken)
-				.ConfigureAwait(false);
-		}
+		IReadOnlyCollection<HackerNewsStoryDto> newStories = await RequestAndCacheAsync(notFoundIds, cancellationToken)
+			.ConfigureAwait(false);
 
 		return cached
 			.Concat(newStories)
@@ -60,7 +58,7 @@ public class HackerNewsStoryService(IHackerNewsClient hackerNewsClient, IMemoryC
 		foreach (HackerNewsStoryDto item in betsStories)
 		{
 			MemoryCacheEntryOptions cacheEntryOptions = new MemoryCacheEntryOptions()
-				.SetSlidingExpiration(TimeSpan.FromSeconds(120));
+				.SetSlidingExpiration(cacheOptions.Value.SlidingExpiration);
 			memoryCache.Set(item.Id, item, cacheEntryOptions);
 		}
 
