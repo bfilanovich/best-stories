@@ -9,7 +9,7 @@ public class Cache(IMemoryCache memoryCache, IOptions<CacheOptions> cacheOptions
 {
 	public bool TryGetValue<T>(object key, [NotNullWhen(true)] out T? value) => memoryCache.TryGetValue(key, out value!);
 
-	public void Set<T>(object key, in T value)
+	public void Set<T>(object key, T value)
 	{
 		MemoryCacheEntryOptions cacheEntryOptions = new MemoryCacheEntryOptions()
 			.SetSlidingExpiration(cacheOptions.Value.SlidingExpiration);
