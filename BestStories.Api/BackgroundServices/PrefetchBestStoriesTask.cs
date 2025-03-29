@@ -16,14 +16,28 @@ public class PrefetchBestStoriesTask(IServiceScopeFactory serviceScopeFactory,
 {
 	protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 	{
-		const int maxCount = 200;
 		while (!stoppingToken.IsCancellationRequested)
 		{
 			using IServiceScope scope = serviceScopeFactory.CreateScope();
 			var storyService = scope.ServiceProvider.GetRequiredService<HackerNewsStoryService>();
-			logger.LogInformation("Prefetching best stories...");
-			await storyService.GetTopStoriesAsync(maxCount, stoppingToken);
+			try
+			{
+				await PrefetchStories(storyService, stoppingToken);
+			}
+			catch (Exception e)
+			{
+				logger.LogError(e, e.Message);
+				throw;
+			}
+
 			await Task.Delay(cacheOptions.Value.PrefetchInterval, stoppingToken);
 		}
+	}
+
+	private async Task PrefetchStories(HackerNewsStoryService service, CancellationToken cancellationToken)
+	{
+		const int maxCount = 200;
+		logger.LogInformation("Prefetching best stories...");
+		await service.GetTopStoriesAsync(maxCount, cancellationToken);
 	}
 }

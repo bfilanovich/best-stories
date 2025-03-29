@@ -5,8 +5,10 @@ using BestStories.Api.Infrastructure;
 using BestStories.Api.Infrastructure.Abstractions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Polly;
+using Polly.Extensions.Http;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 IServiceCollection services = builder.Services;
@@ -26,8 +28,13 @@ services.AddHttpClient<IHackerNewsClient, HackerNewsClient>((sp, client) =>
 		HackerNewsClientOptions options = sp.GetRequiredService<IOptions<HackerNewsClientOptions>>().Value;
 		client.BaseAddress = options.BaseUri ?? throw new InvalidOperationException("BaseUri isn't configured.");
 	})
-	.AddTransientHttpErrorPolicy(x =>
-		x.WaitAndRetryAsync(3, _ => TimeSpan.FromMilliseconds(200)));
+	.AddPolicyHandler((sp, _) => HttpPolicyExtensions.HandleTransientHttpError()
+		.WaitAndRetryAsync(3, _ => TimeSpan.FromMilliseconds(200),
+			onRetry: (exception, _, retryCount, _) =>
+			{
+				var logger = sp.GetRequiredService<ILogger<HackerNewsClient>>();
+				logger.LogWarning("Unsuccessful request to Hakcer News: {Message}. Retry Count: {RetryCount}.", exception.Exception.Message, retryCount);
+			}));
 
 WebApplication app = builder.Build();
 app.UseSwagger();
