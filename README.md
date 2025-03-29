@@ -9,6 +9,11 @@ Use this command to run the application from the solution directory:
 dotnet run --project .\BestStories.Api\BestStories.Api.csproj --launch-profile http
 ```
 
+Run using Docker
+```
+docker build -t best-stories-api:local -f .\BestStories.Api\Dockerfile . && docker run --rm -p 8080:8080 best-stories-api:local
+```
+
 After application has started, it can be tested using an endpoint `http://localhost:8080/v1/stories/top` with an optional query parameter `count`. 
 
 Curl: 
