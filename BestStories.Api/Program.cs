@@ -1,8 +1,10 @@
 using System;
+using System.Threading.RateLimiting;
 using BestStories.Api.Application;
 using BestStories.Api.BackgroundServices;
 using BestStories.Api.Infrastructure;
 using BestStories.Api.Infrastructure.Abstractions;
+using BestStories.Api.Infrastructure.HttpMessageHandlers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -20,9 +22,15 @@ services.AddSwaggerGen();
 services.AddMemoryCache();
 services.AddTransient<ICache, Cache>();
 services.AddScoped<HackerNewsStoryService>();
+services.AddSingleton<RateLimiter>(_ =>
+{
+	HackerNewsClientOptions options = _.GetRequiredService<IOptions<HackerNewsClientOptions>>().Value;
+	return new ConcurrencyLimiter(new ConcurrencyLimiterOptions { PermitLimit = options.ConcurrentRequestsLimit, QueueLimit = options.ConcurrentRequestQueueLimit });
+});
 services.Configure<HackerNewsClientOptions>(builder.Configuration.GetSection(HackerNewsClientOptions.Section));
 services.Configure<CacheOptions>(builder.Configuration.GetSection(CacheOptions.Section));
 
+services.AddTransient<HackerNewsRateLimitedHandler>();
 services.AddHttpClient<IHackerNewsClient, HackerNewsClient>((sp, client) =>
 	{
 		HackerNewsClientOptions options = sp.GetRequiredService<IOptions<HackerNewsClientOptions>>().Value;
@@ -34,7 +42,8 @@ services.AddHttpClient<IHackerNewsClient, HackerNewsClient>((sp, client) =>
 			{
 				var logger = sp.GetRequiredService<ILogger<HackerNewsClient>>();
 				logger.LogWarning("Unsuccessful request to Hakcer News: {Message}. Retry Count: {RetryCount}.", exception.Exception.Message, retryCount);
-			}));
+			}))
+	.AddHttpMessageHandler<HackerNewsRateLimitedHandler>();
 
 WebApplication app = builder.Build();
 app.UseSwagger();
