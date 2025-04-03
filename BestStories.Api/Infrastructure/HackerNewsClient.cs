@@ -5,7 +5,6 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using BestStories.Api.Application;
 using BestStories.Api.Infrastructure.Abstractions;
 using Microsoft.Extensions.Options;
 

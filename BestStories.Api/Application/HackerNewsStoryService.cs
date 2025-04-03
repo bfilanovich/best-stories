@@ -5,10 +5,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using BestStories.Api.ApiModels;
 using BestStories.Api.Infrastructure.Abstractions;
+using BestStories.Api.Infrastructure.Abstractions.Lock;
 
 namespace BestStories.Api.Application;
 
-public class HackerNewsStoryService(IHackerNewsClient hackerNewsClient, ICache cache)
+public class HackerNewsStoryService(IHackerNewsClient hackerNewsClient, ICache cache, ILockProvider lockProvider)
 {
 	public async Task<IReadOnlyCollection<TopStoryApiDto>> GetTopStoriesAsync(
 		int count,
@@ -21,43 +22,51 @@ public class HackerNewsStoryService(IHackerNewsClient hackerNewsClient, ICache c
 
 		long[] bestIds = await hackerNewsClient.GetBestStoryIdsAsync(cancellationToken);
 		long[] topIds = bestIds.Take(count).ToArray();
-		IReadOnlyCollection<HackerNewsStoryDto> cached = GetCached(topIds);
-		long[] notFoundIds = topIds.Except(cached.Select(x => x.Id)).ToArray();
-		IReadOnlyCollection<HackerNewsStoryDto> newStories = await RequestAndCacheAsync(notFoundIds, cancellationToken)
+		IReadOnlyCollection<HackerNewsStoryDto> stories = await GetStoriesAsync(topIds, cancellationToken)
 			.ConfigureAwait(false);
 
-		return cached
-			.Concat(newStories)
+		return stories
 			.Select(MapToStoryApiDto)
 			.OrderByDescending(x => x.Score)
 			.ToArray();
 	}
 
-	private List<HackerNewsStoryDto> GetCached(long[] ids)
+	private async Task<IReadOnlyCollection<HackerNewsStoryDto>> GetStoriesAsync(long[] ids, CancellationToken cancellationToken)
 	{
-		var result = new List<HackerNewsStoryDto>(ids.Length);
-		foreach (long id in ids)
-		{
-			if (cache.TryGetValue(id, out HackerNewsStoryDto? cached))
-			{
-				result.Add(cached);
-			}
-		}
+		Task<HackerNewsStoryDto>[] requestTasks = ids
+			.Select(id => RequestAndCacheAsync(id, cancellationToken))
+			.ToArray();
 
-		return result;
+		return await Task.WhenAll(requestTasks).ConfigureAwait(false);
 	}
 
-	private async Task<IReadOnlyCollection<HackerNewsStoryDto>> RequestAndCacheAsync(long[] ids, CancellationToken cancellationToken)
+	private async Task<HackerNewsStoryDto> RequestAndCacheAsync(long id, CancellationToken cancellationToken)
 	{
-		IReadOnlyCollection<HackerNewsStoryDto> betsStories = await hackerNewsClient.GetStoriesAsync(ids, cancellationToken)
-			.ConfigureAwait(false);
-
-		foreach (HackerNewsStoryDto item in betsStories)
+		var attemptsCount = 3;
+		HackerNewsStoryDto? story;
+		string storyKey = CreateStoryKey(id);
+		while (!cache.TryGetValue(storyKey, out story) && attemptsCount > 0)
 		{
-			cache.Set(item.Id, item);
+			attemptsCount--;
+			await Task.Yield();
+			using ILock storyLock = lockProvider.TryLock(storyKey);
+			if (storyLock.IsLocked)
+			{
+				return await GetAndStoreAsync(id, cancellationToken).ConfigureAwait(false);
+			}
+
+			await Task.Delay(100, cancellationToken).ConfigureAwait(false);
 		}
 
-		return betsStories;
+		return story ?? await GetAndStoreAsync(id, cancellationToken).ConfigureAwait(false);
+
+		async Task<HackerNewsStoryDto> GetAndStoreAsync(long storyId, CancellationToken ct)
+		{
+			HackerNewsStoryDto dto = await hackerNewsClient.GetStoryAsync(storyId, ct)
+				.ConfigureAwait(false);
+			cache.Set(storyKey, dto);
+			return dto;
+		}
 	}
 
 	// Might be replaced with AutoMapper or a self-developed response mapper.
@@ -71,4 +80,6 @@ public class HackerNewsStoryService(IHackerNewsClient hackerNewsClient, ICache c
 			Score = story.Score,
 			Time = story.Time
 		};
+
+	private static string CreateStoryKey(long storyId) => $"{nameof(HackerNewsStoryService)}_{storyId}";
 }
