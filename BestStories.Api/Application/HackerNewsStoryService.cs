@@ -33,14 +33,21 @@ public class HackerNewsStoryService(IHackerNewsClient hackerNewsClient, ICache c
 
 	private async Task<IReadOnlyCollection<HackerNewsStoryDto>> GetStoriesAsync(long[] ids, CancellationToken cancellationToken)
 	{
-		Task<HackerNewsStoryDto>[] requestTasks = ids
+		ValueTask<HackerNewsStoryDto>[] requestTasks = ids
 			.Select(id => RequestAndCacheAsync(id, cancellationToken))
 			.ToArray();
 
-		return await Task.WhenAll(requestTasks).ConfigureAwait(false);
+		var result = new List<HackerNewsStoryDto>();
+		foreach (ValueTask<HackerNewsStoryDto> task in requestTasks)
+		{
+			HackerNewsStoryDto storyDto = await task.ConfigureAwait(false);
+			result.Add(storyDto);
+		}
+
+		return result;
 	}
 
-	private async Task<HackerNewsStoryDto> RequestAndCacheAsync(long id, CancellationToken cancellationToken)
+	private async ValueTask<HackerNewsStoryDto> RequestAndCacheAsync(long id, CancellationToken cancellationToken)
 	{
 		var attemptsCount = 3;
 		HackerNewsStoryDto? story;
